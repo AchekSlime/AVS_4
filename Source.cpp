@@ -4,18 +4,18 @@
 #include <fstream>
 #include <ctime>
 #include "omp.h"
- 
+
 using namespace std;
- 
-// ”ункциЯ ищет максимальный элемент в {col} столбце матрицы {matrix}.
+
+// Р¤СѓРЅРєС†РёСЏ РёС‰РµС‚ РјР°РєСЃРёРјР°Р»СЊРЅС‹Р№ СЌР»РµРјРµРЅС‚ РІ {col} СЃС‚РѕР»Р±С†Рµ РјР°С‚СЂРёС†С‹ {matrix}.
 int col_max(const vector<vector<double>>& matrix, int col) {
     int n = matrix.size();
     double max = abs(matrix[col][col]);
     int maxPos = col;
- 
-#pragma omp parallel shared(matrix) 
+
+#pragma omp parallel shared(matrix)
     {
-        // локальный максимум в потоке.
+        // Р»РѕРєР°Р»СЊРЅС‹Р№ РјР°РєСЃРёРјСѓРј РІ РїРѕС‚РѕРєРµ.
         double loc_max = max;
         int loc_max_pos = maxPos;
 #pragma omp for
@@ -26,7 +26,7 @@ int col_max(const vector<vector<double>>& matrix, int col) {
                 loc_max_pos = i;
             }
         }
-#pragma omp critical    // ищем максимум среди всех потоков.
+#pragma omp critical	// РёС‰РµРј РјР°РєСЃРёРјСѓРј СЃСЂРµРґРё РІСЃРµС… РїРѕС‚РѕРєРѕРІ.
         {
             if (max < loc_max) {
                 max = loc_max;
@@ -36,15 +36,15 @@ int col_max(const vector<vector<double>>& matrix, int col) {
     }
     return maxPos;
 }
- 
+
 int col_maxSimple(const vector<vector<double>>& matrix, int col) {
     int n = matrix.size();
     double max = abs(matrix[col][col]);
     int maxPos = col;
- 
-    //#pragma omp parallel shared(matrix) 
+
+    //#pragma omp parallel shared(matrix)
     {
-        // локальный максимум в потоке.
+        // Р»РѕРєР°Р»СЊРЅС‹Р№ РјР°РєСЃРёРјСѓРј РІ РїРѕС‚РѕРєРµ.
         double loc_max = max;
         int loc_max_pos = maxPos;
         //#pragma omp for
@@ -55,7 +55,7 @@ int col_maxSimple(const vector<vector<double>>& matrix, int col) {
                 loc_max_pos = i;
             }
         }
-        //#pragma omp critical  // ищем максимум среди всех потоков.
+        //#pragma omp critical	// РёС‰РµРј РјР°РєСЃРёРјСѓРј СЃСЂРµРґРё РІСЃРµС… РїРѕС‚РѕРєРѕРІ.
         {
             if (max < loc_max) {
                 max = loc_max;
@@ -65,127 +65,127 @@ int col_maxSimple(const vector<vector<double>>& matrix, int col) {
     }
     return maxPos;
 }
- 
-// ”ункциЯ менЯет местами {origin} и {sub} строки матрицы.
+
+// Р¤СѓРЅРєС†РёСЏ РјРµРЅСЏРµС‚ РјРµСЃС‚Р°РјРё {origin} Рё {sub} СЃС‚СЂРѕРєРё РјР°С‚СЂРёС†С‹.
 void swap(vector<vector<double>>& matrix, int origin, int sub) {
     vector<double> temp = matrix[origin];
     matrix[origin] = matrix[sub];
     matrix[sub] = temp;
 }
- 
-// ”ункциЯ, вычитающаЯ i-ю строку из остальных строк, находЯщихсЯ ниже неЮ так, чтобы i-й элемент каждой строки был равен 0.
-void elementary‘onversion(vector<vector<double>>& matrix, int mainRow) {
+
+// Р¤СѓРЅРєС†РёСЏ, РІС‹С‡РёС‚Р°СЋС‰Р°СЏ i-СЋ СЃС‚СЂРѕРєСѓ РёР· РѕСЃС‚Р°Р»СЊРЅС‹С… СЃС‚СЂРѕРє, РЅР°С…РѕРґСЏС‰РёС…СЃСЏ РЅРёР¶Рµ РЅРµС‘ С‚Р°Рє, С‡С‚РѕР±С‹ i-Р№ СЌР»РµРјРµРЅС‚ РєР°Р¶РґРѕР№ СЃС‚СЂРѕРєРё Р±С‹Р» СЂР°РІРµРЅ 0.
+void elementaryРЎonversion(vector<vector<double>>& matrix, int mainRow) {
     int n = matrix.size();
- 
-    // параллельно вычитаем {mainRow} строку из всех строк, ниже неЮ.
+
+    // РїР°СЂР°Р»Р»РµР»СЊРЅРѕ РІС‹С‡РёС‚Р°РµРј {mainRow} СЃС‚СЂРѕРєСѓ РёР· РІСЃРµС… СЃС‚СЂРѕРє, РЅРёР¶Рµ РЅРµС‘.
 #pragma omp parallel for
     for (int j = mainRow + 1; j < n; ++j) {
-        // множитель длЯ {mainRow} строки.
+        // РјРЅРѕР¶РёС‚РµР»СЊ РґР»СЏ {mainRow} СЃС‚СЂРѕРєРё.
         double mul = -matrix[j][mainRow] / matrix[mainRow][mainRow];
         for (int k = mainRow; k < n; ++k)
             matrix[j][k] += matrix[mainRow][k] * mul;
     }
- 
+
 }
- 
-void elementary‘onversionSimple(vector<vector<double>>& matrix, int mainRow) {
+
+void elementaryРЎonversionSimple(vector<vector<double>>& matrix, int mainRow) {
     int n = matrix.size();
- 
-    // параллельно вычитаем {mainRow} строку из всех строк, ниже неЮ.
+
+    // РїР°СЂР°Р»Р»РµР»СЊРЅРѕ РІС‹С‡РёС‚Р°РµРј {mainRow} СЃС‚СЂРѕРєСѓ РёР· РІСЃРµС… СЃС‚СЂРѕРє, РЅРёР¶Рµ РЅРµС‘.
     //#pragma omp parallel for
     for (int j = mainRow + 1; j < n; ++j) {
-        // множитель длЯ {mainRow} строки.
+        // РјРЅРѕР¶РёС‚РµР»СЊ РґР»СЏ {mainRow} СЃС‚СЂРѕРєРё.
         double mul = -matrix[j][mainRow] / matrix[mainRow][mainRow];
         for (int k = mainRow; k < n; ++k)
             matrix[j][k] += matrix[mainRow][k] * mul;
     }
- 
+
 }
- 
-// ”ункциЯ, приводЯщаЯ матрицу, переданную в неЮ к треугольному виду.
+
+// Р¤СѓРЅРєС†РёСЏ, РїСЂРёРІРѕРґСЏС‰Р°СЏ РјР°С‚СЂРёС†Сѓ, РїРµСЂРµРґР°РЅРЅСѓСЋ РІ РЅРµС‘ Рє С‚СЂРµСѓРіРѕР»СЊРЅРѕРјСѓ РІРёРґСѓ.
 int triangulation(vector<vector<double>>& matrix) {
     int n = matrix.size();
     int swapCount = 0;
- 
-    // проходимсЯ по всей матрице.
+
+    // РїСЂРѕС…РѕРґРёРјСЃСЏ РїРѕ РІСЃРµР№ РјР°С‚СЂРёС†Рµ.
     for (int i = 0; i < n; ++i) {
- 
-        // находим строку, в которой i-й элемент самый большой в своем столбце.
-        // ЏЂђЂ‹‹…‹њЌЋ.
+
+        // РЅР°С…РѕРґРёРј СЃС‚СЂРѕРєСѓ, РІ РєРѕС‚РѕСЂРѕР№ i-Р№ СЌР»РµРјРµРЅС‚ СЃР°РјС‹Р№ Р±РѕР»СЊС€РѕР№ РІ СЃРІРѕРµРј СЃС‚РѕР»Р±С†Рµ.
+        // РџРђР РђР›Р›Р•Р›Р¬РќРћ.
         int sub = col_max(matrix, i);
- 
- 
-        // менЯем найденную строку с i-й местами.
+
+
+        // РјРµРЅСЏРµРј РЅР°Р№РґРµРЅРЅСѓСЋ СЃС‚СЂРѕРєСѓ СЃ i-Р№ РјРµСЃС‚Р°РјРё.
         if (sub != i) {
             swap(matrix, i, sub);
             swapCount++;
         }
- 
- 
- 
-        // вычитаем i-ю строку из остальных строк, находЯщихсЯ ниже неЮ так чтобы i-й элемент каждой строки был равен 0.
-        // ЏЂђЂ‹‹…‹њЌЋ.
-        elementary‘onversion(matrix, i);
+
+
+
+        // РІС‹С‡РёС‚Р°РµРј i-СЋ СЃС‚СЂРѕРєСѓ РёР· РѕСЃС‚Р°Р»СЊРЅС‹С… СЃС‚СЂРѕРє, РЅР°С…РѕРґСЏС‰РёС…СЃСЏ РЅРёР¶Рµ РЅРµС‘ С‚Р°Рє С‡С‚РѕР±С‹ i-Р№ СЌР»РµРјРµРЅС‚ РєР°Р¶РґРѕР№ СЃС‚СЂРѕРєРё Р±С‹Р» СЂР°РІРµРЅ 0.
+        // РџРђР РђР›Р›Р•Р›Р¬РќРћ.
+        elementaryРЎonversion(matrix, i);
     }
     return swapCount;
 }
- 
+
 int triangulationSimple(vector<vector<double>>& matrix) {
     int n = matrix.size();
     int swapCount = 0;
- 
-    // проходимсЯ по всей матрице.
+
+    // РїСЂРѕС…РѕРґРёРјСЃСЏ РїРѕ РІСЃРµР№ РјР°С‚СЂРёС†Рµ.
     for (int i = 0; i < n; ++i) {
- 
-        // находим строку, в которой i-й элемент самый большой в своем столбце.
-        // ЏЂђЂ‹‹…‹њЌЋ.
+
+        // РЅР°С…РѕРґРёРј СЃС‚СЂРѕРєСѓ, РІ РєРѕС‚РѕСЂРѕР№ i-Р№ СЌР»РµРјРµРЅС‚ СЃР°РјС‹Р№ Р±РѕР»СЊС€РѕР№ РІ СЃРІРѕРµРј СЃС‚РѕР»Р±С†Рµ.
+        // РџРђР РђР›Р›Р•Р›Р¬РќРћ.
         int sub = col_maxSimple(matrix, i);
- 
- 
-        // менЯем найденную строку с i-й местами.
+
+
+        // РјРµРЅСЏРµРј РЅР°Р№РґРµРЅРЅСѓСЋ СЃС‚СЂРѕРєСѓ СЃ i-Р№ РјРµСЃС‚Р°РјРё.
         if (sub != i) {
             swap(matrix, i, sub);
             swapCount++;
         }
- 
- 
-        // вычитаем i-ю строку из остальных строк, находЯщихсЯ ниже неЮ так чтобы i-й элемент каждой строки был равен 0.
-        // ЏЂђЂ‹‹…‹њЌЋ.
-        elementary‘onversionSimple(matrix, i);
+
+
+        // РІС‹С‡РёС‚Р°РµРј i-СЋ СЃС‚СЂРѕРєСѓ РёР· РѕСЃС‚Р°Р»СЊРЅС‹С… СЃС‚СЂРѕРє, РЅР°С…РѕРґСЏС‰РёС…СЃСЏ РЅРёР¶Рµ РЅРµС‘ С‚Р°Рє С‡С‚РѕР±С‹ i-Р№ СЌР»РµРјРµРЅС‚ РєР°Р¶РґРѕР№ СЃС‚СЂРѕРєРё Р±С‹Р» СЂР°РІРµРЅ 0.
+        // РџРђР РђР›Р›Р•Р›Р¬РќРћ.
+        elementaryРЎonversionSimple(matrix, i);
     }
     return swapCount;
 }
- 
-// ”ункциЯ, вычислЯющаЯ определитель переданной в нее матрицы.
+
+// Р¤СѓРЅРєС†РёСЏ, РІС‹С‡РёСЃР»СЏСЋС‰Р°СЏ РѕРїСЂРµРґРµР»РёС‚РµР»СЊ РїРµСЂРµРґР°РЅРЅРѕР№ РІ РЅРµРµ РјР°С‚СЂРёС†С‹.
 double calculateGaussDeterminant(vector<vector<double>> matrix) {
     int n = matrix.size();
- 
-    // приводим матрицу к треугольному виду.
+
+    // РїСЂРёРІРѕРґРёРј РјР°С‚СЂРёС†Сѓ Рє С‚СЂРµСѓРіРѕР»СЊРЅРѕРјСѓ РІРёРґСѓ.
     int swapCount = triangulation(matrix);
- 
-    // подсчитываем определитель.
+
+    // РїРѕРґСЃС‡РёС‚С‹РІР°РµРј РѕРїСЂРµРґРµР»РёС‚РµР»СЊ.
     double det = 1;
     if (swapCount % 2 == 1)
         det = -1;
-    #pragma omp parallel reduction (*: det)
+#pragma omp parallel reduction (*: det)
     {
-    # pragma omp for
+# pragma omp for
         for (int i = 0; i < n; ++i) {
             det *= matrix[i][i];
         }
- 
- 
+
+
     }
     return round(det);
 }
- 
+
 double calculateGaussDeterminantSimple(vector<vector<double>> matrix) {
     int n = matrix.size();
- 
-    // приводим матрицу к треугольному виду.
+
+    // РїСЂРёРІРѕРґРёРј РјР°С‚СЂРёС†Сѓ Рє С‚СЂРµСѓРіРѕР»СЊРЅРѕРјСѓ РІРёРґСѓ.
     int swapCount = triangulationSimple(matrix);
- 
-    // подсчитываем определитель.
+
+    // РїРѕРґСЃС‡РёС‚С‹РІР°РµРј РѕРїСЂРµРґРµР»РёС‚РµР»СЊ.
     double det = 1;
     if (swapCount % 2 == 1)
         det = -1;
@@ -195,64 +195,65 @@ double calculateGaussDeterminantSimple(vector<vector<double>> matrix) {
         for (int i = 0; i < n; ++i) {
             det *= matrix[i][i];
         }
- 
- 
+
+
     }
     return round(det);
 }
- 
- 
-// ”ункциЯ, читающаЯ матрицу {matrix} из файла.
+
+
+// Р¤СѓРЅРєС†РёСЏ, С‡РёС‚Р°СЋС‰Р°СЏ РјР°С‚СЂРёС†Сѓ {matrix} РёР· С„Р°Р№Р»Р°.
 void readMatrixFromFile(vector<vector<double>>& matrix, ifstream& input) {
-    // перваЯ строка в файле - размерность матрицы.
+    // РїРµСЂРІР°СЏ СЃС‚СЂРѕРєР° РІ С„Р°Р№Р»Рµ - СЂР°Р·РјРµСЂРЅРѕСЃС‚СЊ РјР°С‚СЂРёС†С‹.
     int n = matrix[0].size();
- 
+
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             input >> matrix[i][j];
         }
     }
 }
- 
+
 double checkTime(bool isMP, vector<vector<double>> matrix, double& determinant) {
     double start = clock();
- 
+
     if (isMP) {
-        // запускаем многопоточную версию функции вычислениЯ определителЯ методом ѓаусса.
+        // Р·Р°РїСѓСЃРєР°РµРј РјРЅРѕРіРѕРїРѕС‚РѕС‡РЅСѓСЋ РІРµСЂСЃРёСЋ С„СѓРЅРєС†РёРё РІС‹С‡РёСЃР»РµРЅРёСЏ РѕРїСЂРµРґРµР»РёС‚РµР»СЏ РјРµС‚РѕРґРѕРј Р“Р°СѓСЃСЃР°.
         determinant = calculateGaussDeterminant(matrix);
     }
     else {
         determinant = calculateGaussDeterminantSimple(matrix);
     }
     double end = clock();
- 
+
     return (double)(end - start) / CLOCKS_PER_SEC;
 }
- 
+
 int main(int argc, char* argv[]) {
- 
+
     ifstream input;
     ofstream output;
     input.open(argv[1]);
     output.open(argv[2]);
- 
+
     int n;
     input >> n;
- 
-    // инициализируем матрицу с которой будем работать.
+
+    // РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РјР°С‚СЂРёС†Сѓ СЃ РєРѕС‚РѕСЂРѕР№ Р±СѓРґРµРј СЂР°Р±РѕС‚Р°С‚СЊ.
     vector<vector<double>> matrix(n, vector<double>(n));
- 
-    // считываем матрицу из файла с именем {argv[1]}.
+
+    // СЃС‡РёС‚С‹РІР°РµРј РјР°С‚СЂРёС†Сѓ РёР· С„Р°Р№Р»Р° СЃ РёРјРµРЅРµРј {argv[1]}.
     readMatrixFromFile(matrix, input);
- 
+
     double determinant = 0;
-        
-    // засекаем времЯ работы многопточного алгоритма.
+
+    // Р·Р°СЃРµРєР°РµРј РІСЂРµРјСЏ СЂР°Р±РѕС‚С‹ РјРЅРѕРіРѕРїС‚РѕС‡РЅРѕРіРѕ Р°Р»РіРѕСЂРёС‚РјР°.
     double time1 = checkTime(true, matrix, determinant);
-    // засекаем времЯ работы последовательного агоритма.
+    // Р·Р°СЃРµРєР°РµРј РІСЂРµРјСЏ СЂР°Р±РѕС‚С‹ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕРіРѕ Р°РіРѕСЂРёС‚РјР°.
     double time2 = checkTime(false, matrix, determinant);
- 
-    output << "Џри размере матрицы == " << n << endl;
-    output << "Ћпределитель == " << determinant << endl;
-    output << "‚ремЯ работы обычной программы : " << time2 << " cек." << endl;
-    output << "‚ремЯ работы многопоточной программы : " << time1 << " cек.";
+
+    output << "РџСЂРё СЂР°Р·РјРµСЂРµ РјР°С‚СЂРёС†С‹ == " << n << endl;
+    output << "РћРїСЂРµРґРµР»РёС‚РµР»СЊ == " << determinant << endl;
+    output << "Р’СЂРµРјСЏ СЂР°Р±РѕС‚С‹ РѕР±С‹С‡РЅРѕР№ РїСЂРѕРіСЂР°РјРјС‹ : " << time2 << " cРµРє." << endl;
+    output << "Р’СЂРµРјСЏ СЂР°Р±РѕС‚С‹ РјРЅРѕРіРѕРїРѕС‚РѕС‡РЅРѕР№ РїСЂРѕРіСЂР°РјРјС‹ : " << time1 << " cРµРє.";
+}
